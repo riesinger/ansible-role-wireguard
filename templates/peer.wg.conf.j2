@@ -1,0 +1,26 @@
+#jinja2: lstrip_blocks:"True",trim_blocks:"True"
+[Interface]
+Address = INSERT ADDRESS HERE
+PrivateKey = INSERT PRIVATE KEY HERE
+ListenPort = {{wireguard_port}}
+
+{% for host in groups["vpn"] %}
+  {% if hostvars[host].wireguard_endpoint != "" %}
+    [Peer]
+    PublicKey = {{hostvars[host].public_key}}
+    {% if hostvars[host].wireguard_allowed_ips is defined %}
+    AllowedIPs = {{hostvars[host].wireguard_allowed_ips}}
+    {% else %}
+    AllowedIPs = {{hostvars[host].wireguard_ip}}/32
+    {% endif %}
+    {% if hostvars[host].wireguard_persistent_keepalive is defined %}
+    PersistentKeepalive = {{hostvars[host].wireguard_persistent_keepalive}}
+    {% endif %}
+    {% if hostvars[host].wireguard_endpoint is not defined %}
+    Endpoint = {{host}}:{{wireguard_port}}
+    {% elif hostvars[host].wireguard_endpoint != "" %}
+    Endpoint = {{hostvars[host].wireguard_endpoint}}:{{wireguard_port}}
+    {% endif %}
+
+  {% endif %}
+{% endfor %}
